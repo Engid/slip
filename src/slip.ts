@@ -3,6 +3,12 @@
  * found at norgiv.com/lispy.html
  */
 
+//From Crockfords TDOP parser impl
+
+
+import Tokenizer from './tokenizer'
+
+
 
 interface message {
   token: string
@@ -37,14 +43,28 @@ class Atom {
 /**
  * Norvigs implementation
  */
-export function atom(token: string): number | string {
+export function atom(token: string) {
   var num = Number(token);
   if (!isNaN(num))
     return num;
   else
-    return token;
+    return new SlipSymbol(token);
 }
 
+/**
+ * This is to match the use-case for Norvigs Eval,
+ * which uses string based 'symbols' as keys for
+ * the Env object. ????
+ */
+export class SlipSymbol extends String {
+  value: string;
+  constructor(token:string) {
+    super();
+    this.value = token;
+  }
+}
+
+//type Atom = number | string;
 type List = Array<Atom>;
 type Exp = Atom | List;
 type Env = Object; 
@@ -88,6 +108,20 @@ export function parse(program: string) {
     return readFromTokens(tokenize(program));
 }
 
+export function parsePrintable(program: string){
+  var tokens = parse(program);
+  function mapper(tokens){ 
+    tokens.map((v) => {
+      if (Array.isArray(v))
+        return mapper(v);
+      else if (v instanceof SlipSymbol)
+        return v.value;
+      else
+        return v;
+      })
+  }
+  return mapper(tokens);
+}
 
 /**
  * TODO: need to implement string parsing..
@@ -119,6 +153,24 @@ export function readFromTokens(tokens: string[]): Exp {
     return atom(token) 
 }
 
+type concat = number | string;
+
+let Env = {
+  '+': (a: concat, b: concat) => a + b,
+  '-': (a: number, b: number) => a - b,
+  '*': (a: number, b: number) => a * b,
+  '/': (a: number, b: number) => a / b,
+  '>': (a, b) => a > b,
+  '<': (a, b) => a < b,
+  '>=': (a, b) => a >= b,
+  '<=': (a, b) => a <= b,
+  '=': (a, b) => a === b,
+}
+
+function slipEval(x: Exp, env=Env){
+  if (x instanceof SlipSymbol) //Symbols for user defined names
+    return env[x.value]
+}
 
 function slip () {
 

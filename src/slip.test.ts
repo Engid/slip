@@ -1,4 +1,5 @@
-import {tokenize, parse, atom} from './slip';
+import {tokenize, parse, parsePrintable, atom, SlipSymbol} from './slip';
+import Tokenizer from './tokenizer';
 
 it("tokenizes", () => {
   expect(tokenize("(+ 1 2)"))
@@ -7,28 +8,31 @@ it("tokenizes", () => {
     .toEqual(['(', '+', '(', '-', '1', '2', ')', '3', ')', ]);
 })
 
-/*
-it('replaces', () => {
-  expect( "()".replace('(', ' ( ') )
-    .toEqual(" ( )");
+it('Tokenizers', () => {
+  var tokens = new Tokenizer('*').toTokens()
+  var expectation = [{
+    type: 'operator',
+    value: '*',
+    from: 0,
+    to: 1,
+    line: 1,
+    column: 1
+  }]
+  expect(tokens).toEqual(expectation)
+});
 
-  expect( "()".replace(')', ' ) ') )
-    .toEqual("( ) ");
-
-  expect( "()".replace('(', ' ( ')
-              .replace(')', ' ) ')  )
-    .toEqual(" (  ) ");
-  
-  expect( "())".replace(/\(/g, ' ( ')
-              .replace( /\)/g , ' ) ')  )
-    .toEqual(" (  )  ) ");
+it('symbolizes', () => {
+  var sym = new SlipSymbol('+')
+  expect(sym)
+    .toBeInstanceOf(SlipSymbol)
+  expect(sym.value)
+    .toEqual('+')
 })
-*/
 
 it('atomizes', () => {
   expect(atom('3'))
   .toEqual(3)
-  expect(atom('*'))
+  expect(atom('*').value)
     .toEqual('*')
 });
 
